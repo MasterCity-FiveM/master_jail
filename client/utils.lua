@@ -1,9 +1,8 @@
 RegisterCommand("jailmenu", function(source, args)
-
 	if PlayerData.job.name == "police" then
 		OpenJailMenu()
 	else
-		ESX.ShowNotification("You are not an officer!")
+		exports.pNotify:SendNotification({text = "شما پلیس نیستید!", type = "error", timeout = 6000})
 	end
 end)
 
@@ -44,7 +43,6 @@ end
 
 function Cutscene()
 	DoScreenFadeOut(100)
-
 	Citizen.Wait(250)
 
 	TriggerEvent('skinchanger:getSkin', function(skin)
@@ -89,11 +87,8 @@ function Cutscene()
 	Cam()
 
 	Citizen.Wait(1000)
-
 	DoScreenFadeIn(100)
-
 	Citizen.Wait(10000)
-
 	DoScreenFadeOut(250)
 
 	local JailPosition = Config.JailPositions["Cell"]
@@ -124,81 +119,17 @@ function Cam()
 
 	RenderScriptCams(true, false, 0, true, true)
 end
---[[
-function TeleportPlayer(pos)
 
-	local Values = pos
-
-	if #Values["goal"] > 1 then
-
-		local elements = {}
-
-		for i, v in pairs(Values["goal"]) do
-			table.insert(elements, { label = v, value = v })
-		end
-
-		ESX.UI.Menu.Open(
-			'default', GetCurrentResourceName(), 'teleport_jail',
-			{
-				title    = "Choose Position",
-				align    = 'center',
-				elements = elements
-			},
-		function(data, menu)
-
-			local action = data.current.value
-			local position = Config.Teleports[action]
-
-			if action == "Boiling Broke" or action == "Security" then
-
-				if PlayerData.job.name ~= "police" then
-					ESX.ShowNotification("You don't have an key to go here!")
-					return
-				end
-			end
-
-			menu.close()
-
-			DoScreenFadeOut(100)
-
-			Citizen.Wait(250)
-
-			SetEntityCoords(PlayerPedId(), position["x"], position["y"], position["z"])
-
-			Citizen.Wait(250)
-
-			DoScreenFadeIn(100)
-			
-		end,
-
-		function(data, menu)
-			menu.close()
-		end)
-	else
-		local position = Config.Teleports[Values["goal"][1]]
---[[
-		DoScreenFadeOut(100)
-
-		Citizen.Wait(250)
-
-		SetEntityCoords(PlayerPedId(), position["x"], position["y"], position["z"])
-
-		Citizen.Wait(250)
-
-		DoScreenFadeIn(100)
-	end
-end
-]]
 Citizen.CreateThread(function()
 	local blip = AddBlipForCoord(Config.Teleports2["Boiling Broke"]["x"], Config.Teleports2["Boiling Broke"]["y"], Config.Teleports2["Boiling Broke"]["z"])
 
     SetBlipSprite (blip, 188)
     SetBlipDisplay(blip, 4)
-    SetBlipScale  (blip, 0.8)
-    SetBlipColour (blip, 49)
+    SetBlipScale  (blip, 1.4)
+    SetBlipColour (blip, 73)
     SetBlipAsShortRange(blip, true)
 
     BeginTextCommandSetBlipName("STRING")
-    AddTextComponentString('Boilingbroke Penitentiary')
+    AddTextComponentString('Prison')
     EndTextCommandSetBlipName(blip)
 end)

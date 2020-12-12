@@ -63,7 +63,6 @@ end)
 RegisterNetEvent("esx-qalle-jail:jailPlayer")
 AddEventHandler("esx-qalle-jail:jailPlayer", function(newJailTime)
 	jailTime = newJailTime
-
 	Cutscene()
 end)
 
@@ -71,9 +70,7 @@ end)
 RegisterNetEvent("esx-qalle-jail:unJailPlayer")
 AddEventHandler("esx-qalle-jail:unJailPlayer", function()
 	jailTime = 0
-
 	UnJail()
-
 	unjail = true
 end)
 
@@ -82,41 +79,31 @@ end)
 function JailLogin()
 	local JailPosition = Config.JailPositions["Cell"]
 	SetEntityCoords(PlayerPedId(), JailPosition["x"], JailPosition["y"], JailPosition["z"] - 1)
-
-	ESX.ShowNotification("Last time you went to sleep you were jailed, because of that you are now put back!")
-
+	exports.pNotify:SendNotification({text = "آخرین باری که از سرور خارج شدید در زندان بودید، لذا مجدد به زندان باز میگردید.", type = "info", timeout = 6000})
 	InJail()
 end
 
 function UnJail()
 	InJail()
-
 	ESX.Game.Teleport(PlayerPedId(), Config.Teleports2["Boiling Broke"])
-
 	ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin)
 		TriggerEvent('skinchanger:loadSkin', skin)
 	end)
 
-	ESX.ShowNotification("You are released, stay calm outside! Good LucK!")
+	exports.pNotify:SendNotification({text = "شما از زندان خارج شدید، امیدواریم از اشتباهات خود درس گرفته باشید!", type = "success", timeout = 6000})
 end
 
 function InJail()
-
 	--Jail Timer--
-
 	Citizen.CreateThread(function()
-
 		while jailTime > 0 do
-
 			jailTime = jailTime - 1
-
-			ESX.ShowNotification("You have " .. jailTime .. " months left in jail!")
-
+			
+			exports.pNotify:SendNotification({text = "شما " .. jailTime .." ماه دیگر از زندان خارج می شوید.", type = "info", timeout = 3000})
 			TriggerServerEvent("esx-qalle-jail:updateJailTime", jailTime)
 
 			if jailTime < 1 then
 				UnJail()
-
 				TriggerServerEvent("esx-qalle-jail:updateJailTime", 0)
 			end
 
@@ -131,58 +118,41 @@ function InJail()
 
 	Citizen.CreateThread(function()
 		while jailTime > 0 do
-			
 			local sleepThread = 500
-
 			local Packages = Config.PrisonWork["Packages"]
-
 			local Ped = PlayerPedId()
 			local PedCoords = GetEntityCoords(Ped)
 
 			for posId, v in pairs(Packages) do
-
 				local DistanceCheck = GetDistanceBetweenCoords(PedCoords, v["x"], v["y"], v["z"], true)
-
 				if DistanceCheck <= 10.0 then
-
 					sleepThread = 5
-
 					local PackageText = "Pack"
 
 					if not v["state"] then
 						PackageText = "Already Taken"
 					end
-
+					
+					DrawMarker(21, vector3(v["x"], v["y"], v["z"]), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, 100, false, true, 2, true, false, false, false)
+					
 					ESX.Game.Utils.DrawText3D(v, "[E] " .. PackageText, 0.4)
-
 					if DistanceCheck <= 1.5 then
-
 						if IsControlJustPressed(0, 38) then
-
 							if v["state"] then
 								PackPackage(posId)
 							else
-								ESX.ShowNotification("You've already taken this package!")
+								exports.pNotify:SendNotification({text = "شما این بسته را قبلا دریافت کردید.", type = "info", timeout = 3000})
 							end
-
 						end
-
 					end
-
 				end
-
 			end
-
 			Citizen.Wait(sleepThread)
-
 		end
-
-
 	end)
-
 	--Prison Work--
-
 end
+
 --[[
 function LoadTeleporters()
 	Citizen.CreateThread(function()
@@ -232,31 +202,22 @@ function PackPackage(packageId)
 	local StartTime = GetGameTimer()
 
 	while Packaging do
-		
 		Citizen.Wait(1)
-
 		local TimeToTake = 30000 * 1 -- Minutes
 		local PackPercent = (GetGameTimer() - StartTime) / TimeToTake * 100
-
 		if not IsPedUsingScenario(PlayerPedId(), "PROP_HUMAN_BUM_BIN") then
 			DeleteEntity(PackageObject)
-
 			ESX.ShowNotification("Canceled!")
-
 			Packaging = false
 		end
 
 		if PackPercent >= 100 then
-
 			Packaging = false
-
 			DeliverPackage(PackageObject)
-
 			Package["state"] = false
 		else
 			ESX.Game.Utils.DrawText3D(Package, "Packaging... " .. math.ceil(tonumber(PackPercent)) .. "%", 0.4)
 		end
-		
 	end
 end
 
@@ -265,17 +226,14 @@ local deliverd = false
 function DeliverPackage(packageId)
 	if DoesEntityExist(packageId) then
 		AttachEntityToEntity(packageId, PlayerPedId(), GetPedBoneIndex(PlayerPedId(),  28422), 0.0, -0.03, 0.0, 5.0, 0.0, 0.0, 1, 1, 0, 1, 0, 1)
-
 		ClearPedTasks(PlayerPedId())
 	else
 		return
 	end
-
+	
 	local Packaging = true
 
-
 	LoadAnim("anim@heists@box_carry@")
-
 	while Packaging do
 
 		Citizen.Wait(5)
@@ -292,6 +250,8 @@ function DeliverPackage(packageId)
 			local PedPosition = GetEntityCoords(PlayerPedId())
 			local DistanceCheck = GetDistanceBetweenCoords(PedPosition, DeliverPosition["x"], DeliverPosition["y"], DeliverPosition["z"], true)
 
+			DrawMarker(21, vector3(DeliverPosition["x"], DeliverPosition["y"], DeliverPosition["z"]), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, 100, false, true, 2, true, false, false, false)
+					
 			ESX.Game.Utils.DrawText3D(DeliverPosition, "[E] Leave Package", 0.4)
 
 			if DistanceCheck <= 2.0 then
@@ -309,9 +269,7 @@ function DeliverPackage(packageId)
 				end
 			end
 		end
-
 	end
-
 end
 
 function OpenJailMenu()
