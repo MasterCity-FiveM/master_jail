@@ -140,7 +140,7 @@ function JailPlayer(src, jailPlayer, jailTime)
 	
 	if tPlayer.get('HandCuff') then
 		tPlayer.set('HandCuff', false)
-		TriggerClientEvent('esx_policejob:handuncuffFast', jailPlayer, foot)
+		TriggerClientEvent('esx_policejob:handuncuffFast', jailPlayer, true)
 		tPlayer.set('HandCuffedBy', nil)
 	end
 
