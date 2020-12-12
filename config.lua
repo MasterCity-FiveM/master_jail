@@ -9,7 +9,8 @@ Config.EscapedPastPoint = vector3(1187.1,3096.83,43.15)
 -- End of Escape Stuff
 
 Config.JailPositions = {
-	["Cell"] = { ["x"] = 676.7473, ["y"] = 91.21319, ["z"] = 80.70544, ["h"] = 42.65 }
+	["Cell"] = { ["x"] = 676.7473, ["y"] = 91.21319, ["z"] = 80.70544, ["h"] = 42.65 },
+	["Center"] = { ["x"] = 683.2615, ["y"] = 130.3912, ["z"] = 80.73926, ["h"] = 80.73926 }
 }
 
 Config.Cutscene = {

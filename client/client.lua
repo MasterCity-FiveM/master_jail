@@ -16,8 +16,7 @@ PlayerData = {}
 
 local jailTime = 0
 local unjail = false
-
-
+local PackageID = nil
 Citizen.CreateThread(function()
 	while ESX == nil do
 		TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
@@ -59,7 +58,6 @@ AddEventHandler("esx-qalle-jail:openJailMenu", function()
 	OpenJailMenu()
 end)
 
-
 RegisterNetEvent("esx-qalle-jail:jailPlayer")
 AddEventHandler("esx-qalle-jail:jailPlayer", function(newJailTime)
 	jailTime = newJailTime
@@ -74,8 +72,6 @@ AddEventHandler("esx-qalle-jail:unJailPlayer", function()
 	unjail = true
 end)
 
-
-
 function JailLogin()
 	local JailPosition = Config.JailPositions["Cell"]
 	SetEntityCoords(PlayerPedId(), JailPosition["x"], JailPosition["y"], JailPosition["z"] - 1)
@@ -84,36 +80,67 @@ function JailLogin()
 end
 
 function UnJail()
+	if PackageID then
+		DeleteEntity(PackageID)
+		ClearPedTasksImmediately(PlayerPedId())
+		Packaging = false
+		deliverd = true
+	end
+	
 	InJail()
 	ESX.Game.Teleport(PlayerPedId(), Config.Teleports2["Boiling Broke"])
 	ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin)
 		TriggerEvent('skinchanger:loadSkin', skin)
 	end)
 
+	
 	exports.pNotify:SendNotification({text = "شما از زندان خارج شدید، امیدواریم از اشتباهات خود درس گرفته باشید!", type = "success", timeout = 6000})
 end
 
 function InJail()
 	--Jail Timer--
+	local JailPosition = Config.JailPositions["Cell"]
 	Citizen.CreateThread(function()
 		while jailTime > 0 do
+			if jailTime >= 2 then
+				exports.pNotify:SendNotification({text = "شما " .. jailTime .." ماه دیگر از زندان خارج می شوید.", type = "info", timeout = 3000})
+			end
 			jailTime = jailTime - 1
 			
-			exports.pNotify:SendNotification({text = "شما " .. jailTime .." ماه دیگر از زندان خارج می شوید.", type = "info", timeout = 3000})
+			local Ped = PlayerPedId()
 			TriggerServerEvent("esx-qalle-jail:updateJailTime", jailTime)
-
+			local PedCoords = GetEntityCoords(Ped)
 			if jailTime < 1 then
 				UnJail()
 				TriggerServerEvent("esx-qalle-jail:updateJailTime", 0)
 			end
-
 			Citizen.Wait(60000)
 		end
+	end)
+	
+	Citizen.CreateThread(function()
+		local JailPosition = Config.JailPositions["Cell"]
+		local JailCenterPostion = Config.JailPositions["Center"]
+		while jailTime > 0 do
+			DisableControlAction(0, 24, true) -- Attack
+			DisableControlAction(0, 257, true) -- Attack 2
+			DisableControlAction(0, 25, true) -- Aim
+			DisableControlAction(0, 263, true) -- Melee Attack 1
+			DisableControlAction(0, 45, true) -- Reload
+			local Ped = PlayerPedId()
+			local PedCoords = GetEntityCoords(Ped)
 
+			local DistanceCheck = GetDistanceBetweenCoords(PedCoords, JailCenterPostion["x"], JailCenterPostion["y"], JailCenterPostion["z"], true)
+			if DistanceCheck> 61.5 then
+				SetEntityCoords(Ped, JailPosition["x"], JailPosition["y"], JailPosition["z"])
+			end
+			Citizen.Wait(0)
+		end
 	end)
 
 	--Jail Timer--
 
+			
 	--Prison Work--
 
 	Citizen.CreateThread(function()
@@ -150,7 +177,6 @@ function InJail()
 			Citizen.Wait(sleepThread)
 		end
 	end)
-	--Prison Work--
 end
 
 --[[
@@ -213,6 +239,7 @@ function PackPackage(packageId)
 
 		if PackPercent >= 100 then
 			Packaging = false
+			PackageID = PackageObject
 			DeliverPackage(PackageObject)
 			Package["state"] = false
 		else
@@ -230,8 +257,6 @@ function DeliverPackage(packageId)
 	else
 		return
 	end
-	
-	local Packaging = true
 
 	LoadAnim("anim@heists@box_carry@")
 	while Packaging do
@@ -259,12 +284,12 @@ function DeliverPackage(packageId)
 					DeleteEntity(packageId)
 					ClearPedTasksImmediately(PlayerPedId())
 					Packaging = false
-					
+					PackageID = nil
 					
 					TriggerServerEvent("esx-qalle-jail:prisonWorkReward")
 					deliverd = true
 					if deliverd == true then
-						jailTime = jailTime - 2
+						jailTime = jailTime - 1
 					end
 				end
 			end
@@ -276,11 +301,11 @@ function OpenJailMenu()
 	ESX.UI.Menu.Open(
 		'default', GetCurrentResourceName(), 'jail_prison_menu',
 		{
-			title    = "Prison Menu",
+			title    = "منوی زندان",
 			align    = 'center',
 			elements = {
-				{ label = "Jail Closest Person", value = "jail_closest_player" },
-				{ label = "Unjail Person", value = "unjail_player" }
+				{ label = "زندانی کردن نزدیکترین فرد", value = "jail_closest_player" },
+				{ label = "آزاد کردن زندانی", value = "unjail_player" }
 			}
 		}, 
 	function(data, menu)
@@ -288,62 +313,64 @@ function OpenJailMenu()
 		local action = data.current.value
 
 		if action == "jail_closest_player" then
+			local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
+			if closestPlayer == -1 or closestDistance > 3.0 then
+				exports.pNotify:SendNotification({text = "شهروندی نزدیک شما نیست.", type = "error", timeout = 3000})
+			else
+				menu.close()
+			
+				ESX.UI.Menu.Open(
+					'dialog', GetCurrentResourceName(), 'jail_choose_time_menu',
+					{
+						title = "مدت حبس (دقیقه)"
+					},
+				function(data2, menu2)
 
-			menu.close()
+					local jailTime = tonumber(data2.value)
 
-			ESX.UI.Menu.Open(
-          		'dialog', GetCurrentResourceName(), 'jail_choose_time_menu',
-          		{
-            		title = "Jail Time (minutes)"
-          		},
-          	function(data2, menu2)
-
-            	local jailTime = tonumber(data2.value)
-
-            	if jailTime == nil then
-              		ESX.ShowNotification("The time needs to be in minutes!")
-            	else
-              		menu2.close()
-
-              		local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
-
-              		if closestPlayer == -1 or closestDistance > 3.0 then
-                		ESX.ShowNotification("No players nearby!")
+					if jailTime == nil then
+						exports.pNotify:SendNotification({text = "زمان باید بر حسب دقیقه باشد.", type = "error", timeout = 3000})
 					else
-						ESX.UI.Menu.Open(
-							'dialog', GetCurrentResourceName(), 'jail_choose_reason_menu',
-							{
-							  title = "Jail Reason"
-							},
-						function(data3, menu3)
-		  
-						  	local reason = data3.value
-		  
-						  	if reason == nil then
-								ESX.ShowNotification("You need to put something here!")
-						  	else
-								menu3.close()
-		  
-								local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
-		  
-								if closestPlayer == -1 or closestDistance > 3.0 then
-								  	ESX.ShowNotification("No players nearby!")
+						menu2.close()
+
+						if closestPlayer == -1 or closestDistance > 3.0 then
+							exports.pNotify:SendNotification({text = "شهروندی نزدیک شما نیست.", type = "error", timeout = 3000})
+						else
+							ESX.UI.Menu.Open(
+								'dialog', GetCurrentResourceName(), 'jail_choose_reason_menu',
+								{
+								  title = "دلیل حبس"
+								},
+							function(data3, menu3)
+			  
+								local reason = data3.value
+			  
+								if reason == nil then
+									exports.pNotify:SendNotification({text = "شما باید دلیلی برای زندانی کردن فرد داشته باشید.", type = "error", timeout = 3000})
 								else
-								  	TriggerServerEvent("esx-qalle-jail:jailPlayer", GetPlayerServerId(closestPlayer), jailTime, reason)
+									menu3.close()
+			  
+									local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
+			  
+									if closestPlayer == -1 or closestDistance > 3.0 then
+										exports.pNotify:SendNotification({text = "شهروندی نزدیک شما نیست.", type = "error", timeout = 3000})
+									else
+										TriggerServerEvent("esx-qalle-jail:jailPlayer", GetPlayerServerId(closestPlayer), jailTime, reason)
+									end
+			  
 								end
-		  
-						  	end
-		  
-						end, function(data3, menu3)
-							menu3.close()
-						end)
-              		end
+			  
+							end, function(data3, menu3)
+								menu3.close()
+							end)
+						end
 
-				end
+					end
 
-          	end, function(data2, menu2)
-				menu2.close()
-			end)
+				end, function(data2, menu2)
+					menu2.close()
+				end)
+			end
 		elseif action == "unjail_player" then
 
 			local elements = {}
@@ -351,18 +378,18 @@ function OpenJailMenu()
 			ESX.TriggerServerCallback("esx-qalle-jail:retrieveJailedPlayers", function(playerArray)
 
 				if #playerArray == 0 then
-					ESX.ShowNotification("Your jail is empty!")
+					exports.pNotify:SendNotification({text = "زندانی وجود ندارد.", type = "error", timeout = 3000})
 					return
 				end
 
 				for i = 1, #playerArray, 1 do
-					table.insert(elements, {label = "Prisoner: " .. playerArray[i].name .. " | Jail Time: " .. playerArray[i].jailTime .. " months", value = playerArray[i].identifier })
+					table.insert(elements, {label = "زندانی: " .. playerArray[i].name .. " | مدت حبس: " .. playerArray[i].jailTime .. " ماه", value = playerArray[i].identifier })
 				end
 
 				ESX.UI.Menu.Open(
 					'default', GetCurrentResourceName(), 'jail_unjail_menu',
 					{
-						title = "Unjail Player",
+						title = "آزاد کردن شهروند",
 						align = "center",
 						elements = elements
 					},

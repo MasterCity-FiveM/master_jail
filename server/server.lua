@@ -2,7 +2,6 @@ ESX                = nil
 
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
-
 ESX.RegisterCommand('jail', 'admin', function(xPlayer, args, showError)
 	local src = source
 	local jailPlayer = args.playerId.source
@@ -11,7 +10,7 @@ ESX.RegisterCommand('jail', 'admin', function(xPlayer, args, showError)
 	
 	if GetPlayerName(jailPlayer) ~= nil then
 		if jailTime ~= nil then
-			JailPlayer(jailPlayer, jailTime)
+			JailPlayer(src, jailPlayer, jailTime)
 			TriggerClientEvent("pNotify:SendNotification", jailPlayer, { text = "شما به مدت " .. jailTime .. " ماه زندانی شدید.", type = "error", timeout = 4000, layout = "bottomCenter"})
 		else
 			TriggerClientEvent("pNotify:SendNotification", src, { text = "مدت زندانی شدن صحیح نیست.", type = "error", timeout = 4000, layout = "bottomCenter"})
@@ -26,54 +25,21 @@ end, true, {help = "زندانی کردن شهروند", validate = true, argume
 	{name = 'jailReason', help = 'Dalil dorost nist!', type = 'string'}
 }})
 
---[[
-RegisterCommand("jail", function(src, args, raw)	
-	if xPlayer["job"]["name"] == "police" then
 
-		local jailPlayer = args[1]
-		local jailTime = tonumber(args[2])
-		local jailReason = args[3]
-
-		if GetPlayerName(jailPlayer) ~= nil then
-
-			if jailTime ~= nil then
-				JailPlayer(jailPlayer, jailTime)
-
-				TriggerClientEvent("esx:showNotification", src, GetPlayerName(jailPlayer) .. " Jailed for " .. jailTime .. " months!")
-				
-				if args[3] ~= nil then
-					GetRPName(jailPlayer, function(Firstname, Lastname)
-						TriggerClientEvent('chat:addMessage', -1, { args = { "JUDGE",  Firstname .. " " .. Lastname .. " Is now in jail for the reason: " .. args[3] }, color = { 249, 166, 0 } })
-					end)
-				end
-			else
-				TriggerClientEvent("esx:showNotification", src, "This time is invalid!")
-			end
-		else
-			TriggerClientEvent("esx:showNotification", src, "This ID is not online!")
-		end
+ESX.RegisterCommand('unjail', 'admin', function(xPlayer, args, showError)
+	local src = source
+	local jailPlayer = args.playerId.source
+	
+	if GetPlayerName(jailPlayer) ~= nil then
+		UnJail(jailPlayer)
+		TriggerClientEvent("pNotify:SendNotification", jailPlayer, { text = "بازیکن از زندان خارج شد.", type = "success", timeout = 4000, layout = "bottomCenter"})
 	else
-		TriggerClientEvent("esx:showNotification", src, "You are not an officer!")
+		TriggerClientEvent("pNotify:SendNotification", src, { text = "این شهروند آنلاین نیست.", type = "error", timeout = 4000, layout = "bottomCenter"})
 	end
-end)
-]]--
-
-RegisterCommand("unjail", function(src, args)
-	local source = src
-	local xPlayer = ESX.GetPlayerFromId(source)
-	if xPlayer.job.name == "police" or xPlayer.getGroup() ~= 'user' then
-
-		local jailPlayer = args[1]
-
-		if GetPlayerName(jailPlayer) ~= nil then
-			UnJail(jailPlayer)
-		else
-			TriggerClientEvent("pNotify:SendNotification", source, { text = "این شهروند آنلاین نیست.", type = "error", timeout = 4000, layout = "bottomCenter"})
-		end
-	else
-		TriggerClientEvent("pNotify:SendNotification", source, { text = "شما مدیر یا پلیس نیستید.", type = "error", timeout = 4000, layout = "bottomCenter"})
-	end
-end)
+	
+end, true, {help = "آزاد کردن از زندان", validate = true, arguments = {
+	{name = 'playerId', help = 'Code Melli Dorost nist!', type = 'player'}
+}})
 
 RegisterServerEvent("esx-qalle-jail:jailPlayer")
 AddEventHandler("esx-qalle-jail:jailPlayer", function(targetSrc, jailTime, jailReason)
@@ -82,7 +48,7 @@ AddEventHandler("esx-qalle-jail:jailPlayer", function(targetSrc, jailTime, jailR
 	local xPlayer = ESX.GetPlayerFromId(src)
 	if xPlayer.job.name == "police" or xPlayer.getGroup() ~= 'user' then
 		if GetPlayerName(targetSrc) ~= nil then
-			JailPlayer(targetSrc, jailTime)
+			JailPlayer(src, targetSrc, jailTime)
 			TriggerClientEvent("pNotify:SendNotification", targetSrc, { text = "شما به مدت " .. jailTime .. " ماه زندانی شدید.", type = "error", timeout = 4000, layout = "bottomCenter"})
 			TriggerClientEvent("pNotify:SendNotification", src, { text =  GetPlayerName(targetSrc) .. " به مدت " .. jailTime .. " ماه زندانی شد.", type = "success", timeout = 4000, layout = "bottomCenter"})
 		else
@@ -95,22 +61,26 @@ end)
 
 RegisterServerEvent("esx-qalle-jail:unJailPlayer")
 AddEventHandler("esx-qalle-jail:unJailPlayer", function(targetIdentifier)
-	local src = srouce
+	local src = source
 	local xPlayer = ESX.GetPlayerFromId(src)
 	local tPlayer = ESX.GetPlayerFromIdentifier(targetIdentifier)
-	if xPlayer.job.name == "police" or xPlayer.getGroup() ~= 'user' then
-		if tPlayer ~= nil then
-			UnJail(tPlayer.source)
+	if not xPlayer.job.name == "police" or xPlayer.getGroup() ~= 'user' then
+		if xPlayer.source ~= tPlayer.source then
+			if tPlayer ~= nil then
+				UnJail(tPlayer.source)
+			else
+				MySQL.Async.execute(
+					"UPDATE users SET jail = @newJailTime WHERE identifier = @identifier",
+					{
+						['@identifier'] = tPlayer,
+						['@newJailTime'] = 0
+					}
+				)
+			end
+			TriggerClientEvent("pNotify:SendNotification", src, { text = "بازیکن از زندان خارج شد.", type = "success", timeout = 4000, layout = "bottomCenter"})
 		else
-			MySQL.Async.execute(
-				"UPDATE users SET jail = @newJailTime WHERE identifier = @identifier",
-				{
-					['@identifier'] = tPlayer,
-					['@newJailTime'] = 0
-				}
-			)
+			TriggerClientEvent("pNotify:SendNotification", src, { text = "شما نمیتوانید خودتان  را آزاد کنید.", type = "error", timeout = 4000, layout = "bottomCenter"})
 		end
-		TriggerClientEvent("pNotify:SendNotification", src, { text = "بازیکن از زندان خارج شد.", type = "success", timeout = 4000, layout = "bottomCenter"})
 	else
 		TriggerClientEvent("pNotify:SendNotification", src, { text = "شما مدیر یا پلیس نیستید.", type = "error", timeout = 4000, layout = "bottomCenter"})
 	end
@@ -128,11 +98,52 @@ AddEventHandler("esx-qalle-jail:prisonWorkReward", function()
 
 	local xPlayer = ESX.GetPlayerFromId(src)
 	xPlayer.addMoney(Config.PrisonWorkReward)
-	TriggerClientEvent("pNotify:SendNotification", src, { text = "شما " .. Config.PrisonWorkReward .. "$ جایزه گرفتید.", type = "info", timeout = 4000, layout = "bottomCenter"})
+	TriggerClientEvent("pNotify:SendNotification", src, { text = "شما " .. Config.PrisonWorkReward .. "$ جایزه گرفتید و یک ماه از حبس شما کم شد.", type = "info", timeout = 4000, layout = "bottomCenter"})
 end)
 
-function JailPlayer(jailPlayer, jailTime)
+function GetItemCount(source, item)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    local items = xPlayer.getInventoryItem(item)
+
+    if items == nil then
+        return 0
+    else
+        return items.count
+    end
+end
+
+function JailPlayer(src, jailPlayer, jailTime)
 	local tPlayer = ESX.GetPlayerFromId(jailPlayer)
+	local xPlayer = ESX.GetPlayerFromId(src)
+	
+	if tPlayer.get('EscortBy') then
+		yPlayer = ESX.GetPlayerFromId(tPlayer.get('EscortBy'))
+		if yPlayer and yPlayer.get('EscortPlayer') and yPlayer.get('EscortPlayer') == jailPlayer then
+			yPlayer.set('EscortPlayer', nil)
+			TriggerClientEvent('esx_policejob:dragCopOn', yPlayer.source, jailPlayer)
+		end
+		
+		TriggerClientEvent('esx_policejob:dragOn', jailPlayer, yPlayer.source)
+		tPlayer.set('EscortBy', nil)
+	end
+	
+	if tPlayer.get('HandCuffedBy') then
+		yPlayer = ESX.GetPlayerFromId(tPlayer.get('HandCuffedBy'))
+		if yPlayer and yPlayer.get('HandCuffedPlayer') and yPlayer.get('HandCuffedPlayer') == jailPlayer then
+			if GetItemCount(yPlayer.source, 'handcuffs') == 0 then
+				yPlayer.addInventoryItem('handcuffs', 1)
+			end
+			
+			yPlayer.set('HandCuffedPlayer', nil)
+		end
+	end
+	
+	if tPlayer.get('HandCuff') then
+		tPlayer.set('HandCuff', false)
+		TriggerClientEvent('esx_policejob:handuncuffFast', jailPlayer, foot)
+		tPlayer.set('HandCuffedBy', nil)
+	end
+
 	for k,v in ipairs(tPlayer.loadout) do
 		tPlayer.removeWeapon(v.name)
 	end

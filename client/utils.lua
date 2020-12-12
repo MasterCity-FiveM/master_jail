@@ -1,11 +1,3 @@
-RegisterCommand("jailmenu", function(source, args)
-	if PlayerData.job.name == "police" then
-		OpenJailMenu()
-	else
-		exports.pNotify:SendNotification({text = "شما پلیس نیستید!", type = "error", timeout = 6000})
-	end
-end)
-
 function LoadAnim(animDict)
 	RequestAnimDict(animDict)
 
