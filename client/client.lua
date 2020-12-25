@@ -80,13 +80,18 @@ function JailLogin()
 end
 
 function UnJail()
+	Citizen.Wait(100)
+	
 	if PackageID then
 		DeleteEntity(PackageID)
 		ClearPedTasksImmediately(PlayerPedId())
-		Packaging = false
 		deliverd = true
 	end
 	
+	if IsEntityPlayingAnim(PlayerPedId(), "anim@heists@box_carry@", "idle", 3) then
+		StopAnimTask(PlayerPedId(), 'anim@heists@box_carry@', 'idle', 1.0)
+	end
+
 	InJail()
 	ESX.Game.Teleport(PlayerPedId(), Config.Teleports2["Boiling Broke"])
 	ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin)
@@ -227,7 +232,7 @@ function PackPackage(packageId)
 	local Packaging = true
 	local StartTime = GetGameTimer()
 
-	while Packaging do
+	while Packaging and jailTime > 0 do
 		Citizen.Wait(1)
 		local TimeToTake = 30000 * 1 -- Minutes
 		local PackPercent = (GetGameTimer() - StartTime) / TimeToTake * 100
@@ -257,12 +262,12 @@ function DeliverPackage(packageId)
 	else
 		return
 	end
-
+	
+	local Packaging = true 
 	LoadAnim("anim@heists@box_carry@")
-	while Packaging do
+	while Packaging and jailTime > 0 do
 
 		Citizen.Wait(5)
-
 		if not IsEntityPlayingAnim(PlayerPedId(), "anim@heists@box_carry@", "idle", 3) then
 			TaskPlayAnim(PlayerPedId(), "anim@heists@box_carry@", "idle", 8.0, 8.0, -1, 50, 0, false, false, false)
 		end
