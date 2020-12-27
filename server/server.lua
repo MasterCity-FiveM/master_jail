@@ -65,7 +65,7 @@ AddEventHandler("esx-qalle-jail:unJailPlayer", function(targetIdentifier)
 	local xPlayer = ESX.GetPlayerFromId(src)
 	local tPlayer = ESX.GetPlayerFromIdentifier(targetIdentifier)
 	if not xPlayer.job.name == "police" or xPlayer.getGroup() ~= 'user' then
-		if xPlayer.source ~= tPlayer.source then
+		if tPlayer and xPlayer.source ~= tPlayer.source then
 			if tPlayer ~= nil then
 				UnJail(tPlayer.source)
 			else

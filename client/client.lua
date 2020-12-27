@@ -132,6 +132,7 @@ function InJail()
 			DisableControlAction(0, 25, true) -- Aim
 			DisableControlAction(0, 263, true) -- Melee Attack 1
 			DisableControlAction(0, 45, true) -- Reload
+			DisableControlAction(0, 288, true) -- Phone
 			local Ped = PlayerPedId()
 			local PedCoords = GetEntityCoords(Ped)
 
