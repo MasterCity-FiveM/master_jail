@@ -179,7 +179,12 @@ ESX.RegisterServerCallback("esx-qalle-jail:retrieveJailedPlayers", function(sour
 		MySQL.Async.fetchAll("SELECT firstname, lastname, jail, identifier FROM users WHERE jail > @jail", { ["@jail"] = 0 }, function(result)
 
 			for i = 1, #result, 1 do
-				table.insert(jailedPersons, { name = result[i].firstname .. " " .. result[i].lastname, jailTime = result[i].jail, identifier = result[i].identifier })
+				if result[i].identifier ~= nil then
+					local tPlayer = ESX.GetPlayerFromIdentifier(result[i].identifier)
+					if tPlayer then
+						table.insert(jailedPersons, { name = result[i].firstname .. " " .. result[i].lastname, jailTime = result[i].jail, identifier = result[i].identifier })
+					end
+				end
 			end
 
 			cb(jailedPersons)
