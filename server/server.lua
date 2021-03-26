@@ -2,7 +2,7 @@ ESX                = nil
 
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 
-ESX.RegisterCommand('jail', 'admin', function(xPlayer, args, showError)
+ESX.RunCustomFunction("AddCommand", {"jail"}, 1, function(xPlayer, args)
 	local src = source
 	local jailPlayer = args.playerId.source
 	local jailTime = args.jailTime
@@ -18,15 +18,13 @@ ESX.RegisterCommand('jail', 'admin', function(xPlayer, args, showError)
 	else
 		TriggerClientEvent("pNotify:SendNotification", src, { text = "این شهروند آنلاین نیست.", type = "error", timeout = 4000, layout = "bottomCenter"})
 	end
-	
-end, true, {help = "زندانی کردن شهروند", validate = true, arguments = {
-	{name = 'playerId', help = 'Code Melli Dorost nist!', type = 'player'},
-	{name = 'jailTime', help = 'Time Jail dorost nist!', type = 'number'},
-	{name = 'jailReason', help = 'Dalil dorost nist!', type = 'string'}
-}})
+end, {
+	{name = 'playerId', type = 'player'},
+	{name = 'jailTime', type = 'number'},
+	{name = 'jailReason', type = 'string'}
+}, '.jail PlayerID jailTime jailReason', '.')
 
-
-ESX.RegisterCommand('unjail', 'admin', function(xPlayer, args, showError)
+ESX.RunCustomFunction("AddCommand", {"unjail"}, 1, function(xPlayer, args)
 	local src = source
 	local jailPlayer = args.playerId.source
 	
@@ -36,10 +34,9 @@ ESX.RegisterCommand('unjail', 'admin', function(xPlayer, args, showError)
 	else
 		TriggerClientEvent("pNotify:SendNotification", src, { text = "این شهروند آنلاین نیست.", type = "error", timeout = 4000, layout = "bottomCenter"})
 	end
-	
-end, true, {help = "آزاد کردن از زندان", validate = true, arguments = {
-	{name = 'playerId', help = 'Code Melli Dorost nist!', type = 'player'}
-}})
+end, {
+	{name = 'playerId', type = 'player'}
+}, '.unjail PlayerID', '.')
 
 RegisterServerEvent("esx-qalle-jail:jailPlayer")
 AddEventHandler("esx-qalle-jail:jailPlayer", function(targetSrc, jailTime, jailReason)
