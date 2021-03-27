@@ -43,7 +43,7 @@ AddEventHandler("esx-qalle-jail:jailPlayer", function(targetSrc, jailTime, jailR
 	local targetSrc = tonumber(targetSrc)
 	local src = source
 	local xPlayer = ESX.GetPlayerFromId(src)
-	if xPlayer.job.name == "police" or xPlayer.getGroup() ~= 'user' then
+	if xPlayer.job.name == "police" or xPlayer.job.name == "sheriff" or xPlayer.getRank() > 0 then
 		if GetPlayerName(targetSrc) ~= nil then
 			JailPlayer(src, targetSrc, jailTime)
 			TriggerClientEvent("pNotify:SendNotification", targetSrc, { text = "شما به مدت " .. jailTime .. " ماه زندانی شدید.", type = "error", timeout = 4000, layout = "bottomCenter"})
@@ -61,7 +61,7 @@ AddEventHandler("esx-qalle-jail:unJailPlayer", function(targetIdentifier)
 	local src = source
 	local xPlayer = ESX.GetPlayerFromId(src)
 	local tPlayer = ESX.GetPlayerFromIdentifier(targetIdentifier)
-	if not xPlayer.job.name == "police" or xPlayer.getGroup() ~= 'user' then
+	if not xPlayer.job.name == "police" or xPlayer.job.name == "sheriff" or xPlayer.getRank() > 0 then
 		if tPlayer and xPlayer.source ~= tPlayer.source then
 			if tPlayer ~= nil then
 				UnJail(tPlayer.source)
@@ -172,7 +172,7 @@ ESX.RegisterServerCallback("esx-qalle-jail:retrieveJailedPlayers", function(sour
 	local src = source
 	local xPlayer = ESX.GetPlayerFromId(src)
 	local jailedPersons = {}
-	if xPlayer.job.name == "police" or xPlayer.getGroup() ~= 'user' then
+	if xPlayer.job.name == "police" or xPlayer.job.name == "sheriff" or xPlayer.getRank() > 0 then
 		MySQL.Async.fetchAll("SELECT firstname, lastname, jail, identifier FROM users WHERE jail > @jail", { ["@jail"] = 0 }, function(result)
 
 			for i = 1, #result, 1 do
