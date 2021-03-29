@@ -38,7 +38,7 @@ AddEventHandler("esx:playerLoaded", function(newData)
 
 	Citizen.Wait(25000)
 
-	ESX.TriggerServerCallback("esx-qalle-jail:retrieveJailTime", function(inJail, newJailTime)
+	ESX.TriggerServerCallback("master_jail:retrieveJailTime", function(inJail, newJailTime)
 		if inJail then
 
 			jailTime = newJailTime
@@ -53,20 +53,20 @@ AddEventHandler("esx:setJob", function(response)
 	PlayerData["job"] = response
 end)
 
-RegisterNetEvent("esx-qalle-jail:openJailMenu")
-AddEventHandler("esx-qalle-jail:openJailMenu", function()
+RegisterNetEvent("master_jail:openJailMenu")
+AddEventHandler("master_jail:openJailMenu", function()
 	OpenJailMenu()
 end)
 
-RegisterNetEvent("esx-qalle-jail:jailPlayer")
-AddEventHandler("esx-qalle-jail:jailPlayer", function(newJailTime)
+RegisterNetEvent("master_jail:jailPlayer")
+AddEventHandler("master_jail:jailPlayer", function(newJailTime)
 	jailTime = newJailTime
 	Cutscene()
 end)
 
 
-RegisterNetEvent("esx-qalle-jail:unJailPlayer")
-AddEventHandler("esx-qalle-jail:unJailPlayer", function()
+RegisterNetEvent("master_jail:unJailPlayer")
+AddEventHandler("master_jail:unJailPlayer", function()
 	jailTime = 0
 	UnJail()
 	unjail = true
@@ -113,11 +113,11 @@ function InJail()
 			jailTime = jailTime - 1
 			
 			local Ped = PlayerPedId()
-			TriggerServerEvent("esx-qalle-jail:updateJailTime", jailTime)
+			TriggerServerEvent("master_jail:updateJailTime", jailTime)
 			local PedCoords = GetEntityCoords(Ped)
 			if jailTime < 1 then
 				UnJail()
-				TriggerServerEvent("esx-qalle-jail:updateJailTime", 0)
+				TriggerServerEvent("master_jail:updateJailTime", 0)
 			end
 			Citizen.Wait(60000)
 		end
@@ -292,7 +292,7 @@ function DeliverPackage(packageId)
 					Packaging = false
 					PackageID = nil
 					
-					TriggerServerEvent("esx-qalle-jail:prisonWorkReward")
+					TriggerServerEvent("master_jail:prisonWorkReward")
 					deliverd = true
 					if deliverd == true then
 						jailTime = jailTime - 1
@@ -361,7 +361,7 @@ function OpenJailMenu()
 									if closestPlayer == -1 or closestDistance > 3.0 then
 										exports.pNotify:SendNotification({text = "شهروندی نزدیک شما نیست.", type = "error", timeout = 3000})
 									else
-										TriggerServerEvent("esx-qalle-jail:jailPlayer", GetPlayerServerId(closestPlayer), jailTime, reason)
+										TriggerServerEvent("master_jail:jailPlayer", GetPlayerServerId(closestPlayer), jailTime, reason)
 									end
 			  
 								end
@@ -381,7 +381,7 @@ function OpenJailMenu()
 
 			local elements = {}
 
-			ESX.TriggerServerCallback("esx-qalle-jail:retrieveJailedPlayers", function(playerArray)
+			ESX.TriggerServerCallback("master_jail:retrieveJailedPlayers", function(playerArray)
 
 				if #playerArray == 0 then
 					exports.pNotify:SendNotification({text = "زندانی وجود ندارد.", type = "error", timeout = 3000})
@@ -403,7 +403,7 @@ function OpenJailMenu()
 
 					local action = data2.current.value
 
-					TriggerServerEvent("esx-qalle-jail:unJailPlayer", action)
+					TriggerServerEvent("master_jail:unJailPlayer", action)
 
 					menu2.close()
 

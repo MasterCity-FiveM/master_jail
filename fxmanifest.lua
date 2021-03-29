@@ -1,8 +1,8 @@
---	esx-qalle-jail
+--	master_jail
 --		2018
 --		Carl "Qalle"
 --		2018
---	esx-qalle-jail
+--	master_jail
 
 fx_version 'adamant'
 games { 'rdr3', 'gta5' }

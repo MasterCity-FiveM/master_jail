@@ -7,6 +7,7 @@ ESX.RunCustomFunction("AddCommand", {"jail"}, 1, function(xPlayer, args)
 	local jailPlayer = args.playerId.source
 	local jailTime = args.jailTime
 	local jailReason = args.jailReason
+	ESX.RunCustomFunction("discord", xPlayer.source, 'jail', 'GM Jail', "Player: **" .. GetPlayerName(jailPlayer) .. "**\nTime: **" .. jailTime .. "**\nReason: " .. jailReason)
 	
 	if GetPlayerName(jailPlayer) ~= nil then
 		if jailTime ~= nil then
@@ -27,6 +28,7 @@ end, {
 ESX.RunCustomFunction("AddCommand", {"unjail"}, 1, function(xPlayer, args)
 	local src = source
 	local jailPlayer = args.playerId.source
+	ESX.RunCustomFunction("discord", xPlayer.source, 'jail', 'GM UnJail', "Player: **" .. GetPlayerName(jailPlayer) .. "**")
 	
 	if GetPlayerName(jailPlayer) ~= nil then
 		UnJail(jailPlayer)
@@ -38,8 +40,9 @@ end, {
 	{name = 'playerId', type = 'player'}
 }, '.unjail PlayerID', '.')
 
-RegisterServerEvent("esx-qalle-jail:jailPlayer")
-AddEventHandler("esx-qalle-jail:jailPlayer", function(targetSrc, jailTime, jailReason)
+RegisterServerEvent("master_jail:jailPlayer")
+AddEventHandler("master_jail:jailPlayer", function(targetSrc, jailTime, jailReason)
+	ESX.RunCustomFunction("anti_ddos", source, 'master_jail:jailPlayer', {targetSrc = targetSrc, jailTime = jailTime, jailReason = jailReason})
 	local targetSrc = tonumber(targetSrc)
 	local src = source
 	local xPlayer = ESX.GetPlayerFromId(src)
@@ -48,6 +51,7 @@ AddEventHandler("esx-qalle-jail:jailPlayer", function(targetSrc, jailTime, jailR
 			JailPlayer(src, targetSrc, jailTime)
 			TriggerClientEvent("pNotify:SendNotification", targetSrc, { text = "شما به مدت " .. jailTime .. " ماه زندانی شدید.", type = "error", timeout = 4000, layout = "bottomCenter"})
 			TriggerClientEvent("pNotify:SendNotification", src, { text =  GetPlayerName(targetSrc) .. " به مدت " .. jailTime .. " ماه زندانی شد.", type = "success", timeout = 4000, layout = "bottomCenter"})
+			ESX.RunCustomFunction("discord", source, 'jail', 'Faction Jail', "Player: **" .. GetPlayerName(targetSrc) .. "**\nTime: **" .. jailTime .. "**\nReason: " .. jailReason)
 		else
 			TriggerClientEvent("pNotify:SendNotification", src, { text = "این شهروند آنلاین نیست.", type = "error", timeout = 4000, layout = "bottomCenter"})
 		end
@@ -56,8 +60,9 @@ AddEventHandler("esx-qalle-jail:jailPlayer", function(targetSrc, jailTime, jailR
 	end
 end)
 
-RegisterServerEvent("esx-qalle-jail:unJailPlayer")
-AddEventHandler("esx-qalle-jail:unJailPlayer", function(targetIdentifier)
+RegisterServerEvent("master_jail:unJailPlayer")
+AddEventHandler("master_jail:unJailPlayer", function(targetIdentifier)
+	ESX.RunCustomFunction("anti_ddos", source, 'master_jail:unJailPlayer', {targetIdentifier = targetIdentifier})
 	local src = source
 	local xPlayer = ESX.GetPlayerFromId(src)
 	local tPlayer = ESX.GetPlayerFromIdentifier(targetIdentifier)
@@ -75,6 +80,7 @@ AddEventHandler("esx-qalle-jail:unJailPlayer", function(targetIdentifier)
 				)
 			end
 			TriggerClientEvent("pNotify:SendNotification", src, { text = "بازیکن از زندان خارج شد.", type = "success", timeout = 4000, layout = "bottomCenter"})
+			ESX.RunCustomFunction("discord", source, 'jail', 'Faction UnJail', "Player: **" .. GetPlayerName(tPlayer) .. "**")
 		else
 			TriggerClientEvent("pNotify:SendNotification", src, { text = "شما نمیتوانید خودتان  را آزاد کنید.", type = "error", timeout = 4000, layout = "bottomCenter"})
 		end
@@ -83,14 +89,16 @@ AddEventHandler("esx-qalle-jail:unJailPlayer", function(targetIdentifier)
 	end
 end)
 
-RegisterServerEvent("esx-qalle-jail:updateJailTime")
-AddEventHandler("esx-qalle-jail:updateJailTime", function(newJailTime)
+RegisterServerEvent("master_jail:updateJailTime")
+AddEventHandler("master_jail:updateJailTime", function(newJailTime)
+	ESX.RunCustomFunction("anti_ddos", source, 'master_jail:updateJailTime', {newJailTime = newJailTime})
 	local src = source
 	EditJailTime(src, newJailTime)
 end)
 
-RegisterServerEvent("esx-qalle-jail:prisonWorkReward")
-AddEventHandler("esx-qalle-jail:prisonWorkReward", function()
+RegisterServerEvent("master_jail:prisonWorkReward")
+AddEventHandler("master_jail:prisonWorkReward", function()
+	ESX.RunCustomFunction("anti_ddos", source, 'master_jail:prisonWorkReward', {})
 	local src = source
 
 	local xPlayer = ESX.GetPlayerFromId(src)
@@ -145,12 +153,12 @@ function JailPlayer(src, jailPlayer, jailTime)
 		tPlayer.removeWeapon(v.name)
 	end
 	
-	TriggerClientEvent("esx-qalle-jail:jailPlayer", jailPlayer, jailTime)
+	TriggerClientEvent("master_jail:jailPlayer", jailPlayer, jailTime)
 	EditJailTime(jailPlayer, jailTime)
 end
 
 function UnJail(jailPlayer)
-	TriggerClientEvent("esx-qalle-jail:unJailPlayer", jailPlayer)
+	TriggerClientEvent("master_jail:unJailPlayer", jailPlayer)
 	EditJailTime(jailPlayer, 0)
 end
 
@@ -168,7 +176,8 @@ function EditJailTime(source, jailTime)
 	)
 end
 
-ESX.RegisterServerCallback("esx-qalle-jail:retrieveJailedPlayers", function(source, cb)
+ESX.RegisterServerCallback("master_jail:retrieveJailedPlayers", function(source, cb)
+	ESX.RunCustomFunction("anti_ddos", source, 'master_jail:retrieveJailedPlayers', {})
 	local src = source
 	local xPlayer = ESX.GetPlayerFromId(src)
 	local jailedPersons = {}
@@ -192,7 +201,8 @@ ESX.RegisterServerCallback("esx-qalle-jail:retrieveJailedPlayers", function(sour
 	end
 end)
 
-ESX.RegisterServerCallback("esx-qalle-jail:retrieveJailTime", function(source, cb)
+ESX.RegisterServerCallback("master_jail:retrieveJailTime", function(source, cb)
+	ESX.RunCustomFunction("anti_ddos", source, 'master_jail:retrieveJailTime', {})
 	local src = source
 	local xPlayer = ESX.GetPlayerFromId(src)
 	local Identifier = xPlayer.identifier
