@@ -7,6 +7,11 @@ ESX.RunCustomFunction("AddCommand", {"jail"}, 1, function(xPlayer, args)
 	local jailPlayer = args.playerId.source
 	local jailTime = args.jailTime
 	local jailReason = args.jailReason
+	
+	if jailReason == nil then
+		jailReason = "No Reason"
+	end
+	
 	ESX.RunCustomFunction("discord", xPlayer.source, 'jail', 'GM Jail', "Player: **" .. GetPlayerName(jailPlayer) .. "**\nTime: **" .. jailTime .. "**\nReason: " .. jailReason)
 	
 	if GetPlayerName(jailPlayer) ~= nil then
@@ -22,7 +27,7 @@ ESX.RunCustomFunction("AddCommand", {"jail"}, 1, function(xPlayer, args)
 end, {
 	{name = 'playerId', type = 'player'},
 	{name = 'jailTime', type = 'number'},
-	{name = 'jailReason', type = 'string'}
+	{name = 'jailReason', type = 'full'}
 }, '.jail PlayerID jailTime jailReason', '.')
 
 ESX.RunCustomFunction("AddCommand", {"unjail"}, 1, function(xPlayer, args)
