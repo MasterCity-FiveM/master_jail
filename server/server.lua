@@ -12,10 +12,11 @@ ESX.RunCustomFunction("AddCommand", {"jail"}, 1, function(xPlayer, args)
 		jailReason = "No Reason"
 	end
 	
-	ESX.RunCustomFunction("discord", xPlayer.source, 'jail', 'GM Jail', "Player: **" .. GetPlayerName(jailPlayer) .. "**\nTime: **" .. jailTime .. "**\nReason: " .. jailReason, "2106194")
+	
 	
 	if GetPlayerName(jailPlayer) ~= nil then
 		if jailTime ~= nil then
+			ESX.RunCustomFunction("discord", xPlayer.source, 'jail', 'GM Jail', "Player: **" .. GetPlayerName(jailPlayer) .. "**\nTime: **" .. jailTime .. "**\nReason: " .. jailReason, "2106194")
 			JailPlayer(src, jailPlayer, jailTime)
 			TriggerClientEvent("pNotify:SendNotification", jailPlayer, { text = "شما به مدت " .. jailTime .. " ماه زندانی شدید.", type = "error", timeout = 4000, layout = "bottomCenter"})
 		else
@@ -33,9 +34,10 @@ end, {
 ESX.RunCustomFunction("AddCommand", {"unjail"}, 1, function(xPlayer, args)
 	local src = source
 	local jailPlayer = args.playerId.source
-	ESX.RunCustomFunction("discord", xPlayer.source, 'jail', 'GM UnJail', "Player: **" .. GetPlayerName(jailPlayer) .. "**", "2384697")
+	
 	
 	if GetPlayerName(jailPlayer) ~= nil then
+		ESX.RunCustomFunction("discord", xPlayer.source, 'jail', 'GM UnJail', "Player: **" .. GetPlayerName(jailPlayer) .. "**", "2384697")
 		UnJail(jailPlayer)
 		TriggerClientEvent("pNotify:SendNotification", jailPlayer, { text = "بازیکن از زندان خارج شد.", type = "success", timeout = 4000, layout = "bottomCenter"})
 	else
