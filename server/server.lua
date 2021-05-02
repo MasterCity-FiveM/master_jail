@@ -31,7 +31,7 @@ end, {
 	{name = 'jailReason', type = 'full'}
 }, '.jail PlayerID jailTime jailReason', '.')
 
-ESX.RunCustomFunction("AddCommand", {"unjail"}, 1, function(xPlayer, args)
+ESX.RunCustomFunction("AddCommand", {"unjail"}, 2, function(xPlayer, args)
 	local src = source
 	local jailPlayer = args.playerId.source
 	
