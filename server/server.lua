@@ -12,8 +12,6 @@ ESX.RunCustomFunction("AddCommand", {"jail"}, 1, function(xPlayer, args)
 		jailReason = "No Reason"
 	end
 	
-	
-	
 	if GetPlayerName(jailPlayer) ~= nil then
 		if jailTime ~= nil then
 			ESX.RunCustomFunction("discord", xPlayer.source, 'jail', 'GM Jail', "Player: **" .. GetPlayerName(jailPlayer) .. "**\nTime: **" .. jailTime .. "**\nReason: " .. jailReason, "2106194")
@@ -128,34 +126,16 @@ function JailPlayer(src, jailPlayer, jailTime)
 	local tPlayer = ESX.GetPlayerFromId(jailPlayer)
 	local xPlayer = ESX.GetPlayerFromId(src)
 	
-	if tPlayer.get('EscortBy') then
-		yPlayer = ESX.GetPlayerFromId(tPlayer.get('EscortBy'))
-		if yPlayer and yPlayer.get('EscortPlayer') and yPlayer.get('EscortPlayer') == jailPlayer then
-			yPlayer.set('EscortPlayer', nil)
-			TriggerClientEvent('esx_policejob:dragCopOn', yPlayer.source, jailPlayer)
-		end
-		
-		TriggerClientEvent('esx_policejob:dragOn', jailPlayer, yPlayer.source)
-		tPlayer.set('EscortBy', nil)
-	end
-	
-	if tPlayer.get('HandCuffedBy') then
-		yPlayer = ESX.GetPlayerFromId(tPlayer.get('HandCuffedBy'))
-		if yPlayer and yPlayer.get('HandCuffedPlayer') and yPlayer.get('HandCuffedPlayer') == jailPlayer then
-			if GetItemCount(yPlayer.source, 'handcuffs') == 0 then
-				yPlayer.addInventoryItem('handcuffs', 1)
-			end
-			
-			yPlayer.set('HandCuffedPlayer', nil)
-		end
-	end
+	TriggerClientEvent('esx_policejob:dargOff', -1, tPlayer.source)
+	TriggerClientEvent('esx_policejob:darg', tPlayer.source, nil)
 	
 	if tPlayer.get('HandCuff') then
-		tPlayer.set('HandCuff', false)
-		TriggerClientEvent('esx_policejob:handuncuffFast', jailPlayer, true)
-		tPlayer.set('HandCuffedBy', nil)
+		if GetItemCount(xPlayer.source, 'handcuffs') <= 2 then
+			xPlayer.addInventoryItem('handcuffs', 1)
+		end
+		TriggerClientEvent('esx_policejob:handuncuff', tPlayer.source, foot)
 	end
-
+	
 	for k,v in ipairs(tPlayer.loadout) do
 		tPlayer.removeWeapon(v.name)
 	end
